@@ -20,28 +20,6 @@ const userSchema = new mongoose.Schema(
       required: true,
       minLength: 6,
     },
-    bio: {
-      type: String,
-      default: "",
-    },
-    profile: {
-      type: String,
-      default: "",
-    },
-    nativeLanguage: {
-      type: String,
-      default: "",
-    },
-    isOnline: {
-      type: Boolean,
-      default: false,
-    },
-    callHistory: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Recording",
-      },
-    ],
   },
   { timestamps: true }
 );
