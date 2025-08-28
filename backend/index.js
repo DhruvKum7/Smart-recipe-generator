@@ -4,8 +4,11 @@ import authRoute from './routes/auth.route.js';
 import { connectDB } from "./lib/db.js";
 import cors from 'cors';
 import cookieParser from "cookie-parser";
+import recipeRoute from "./routes/recipe.route.js"
+import { protectRoute } from "./middlewares/auth.middleware.js";
 
 dotenv.config();
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,6 +23,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api/auth", authRoute);
+app.use("/api/recipe", recipeRoute);
 
 
 // Start Server

@@ -8,6 +8,8 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import { fetchUser } from "./api/auth";
 import { useAuthStore } from "./store/auth";
+import CreateRecipe from "./pages/CreateRecipe";
+import Recipe from "./pages/Recipe";
 
 const App = () => {
   const setUser = useAuthStore((s) => s.setUser);
@@ -48,6 +50,23 @@ const App = () => {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create-recipe"
+          element={
+            <ProtectedRoute>
+              <CreateRecipe />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/recipe/:id"
+          element={
+            <ProtectedRoute>
+              <Recipe />
             </ProtectedRoute>
           }
         />
