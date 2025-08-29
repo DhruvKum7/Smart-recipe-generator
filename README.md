@@ -1,6 +1,6 @@
 # 🍳 Smart Recipe Generator  
 
-A **MERN stack web application** powered by **Google Gemini API** that suggests personalized recipes based on ingredients (text input or uploaded images). The app helps users discover new dishes, manage dietary preferences, and improve their cooking experience with ease.  
+A **MERN stack web application** powered by **Google Gemini API** that suggests personalized recipes based on ingredients. The app helps users discover new dishes, manage dietary preferences, and improve their cooking experience with ease.  
 
 ---
 
