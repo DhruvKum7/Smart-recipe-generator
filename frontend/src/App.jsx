@@ -12,6 +12,7 @@ import CreateRecipe from "./pages/CreateRecipe";
 import Recipe from "./pages/Recipe";
 import SavedRecipe from "./pages/SavedRecipe";
 import Error from "./pages/Error";
+import Footer from "./components/Footer";
 
 const App = () => {
   const setUser = useAuthStore((s) => s.setUser);
@@ -87,6 +88,7 @@ const App = () => {
           element={<Error />}
         />
       </Routes>
+      <Footer />
     </BrowserRouter>
   );
 };
