@@ -6,9 +6,7 @@ A **MERN stack web application** powered by **Google Gemini API** that suggests 
 
 ## 🚀 Features  
 - Enter ingredients via text or select from a list  
-- Upload ingredient photos → AI-powered recognition (Google Gemini Vision API)  
 - AI-generated recipes with instructions & nutritional info  
-- Multiple suggestions per input  
 - Filter recipes by cooking time, difficulty, or dietary restrictions  
 - Adjust serving sizes  
 - Preloaded with 20+ curated recipes including nutritional breakdown  
