@@ -79,7 +79,9 @@ const CreateRecipe = () => {
         portionSize,
         category,
         difficulty,
-      });
+      },
+        { withCredentials: true }
+      );
 
       console.log(res.data);
       navigate("/");

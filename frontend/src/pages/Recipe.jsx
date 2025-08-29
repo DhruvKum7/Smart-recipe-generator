@@ -88,7 +88,11 @@ const Recipe = () => {
   const handleGenerateImage = async () => {
     try {
       setImgLoading(true);
-      const res = await axios.post(`${baseUrl}/api/recipe/${id}/generate-image`);
+      const res = await axios.put(
+      `${baseUrl}/api/recipe/${id}`,
+      formData,
+      { withCredentials: true }  
+    );
       setRecipe(res.data.recipe); // update recipe with new image
     } catch (err) {
       setError(err.message || "Failed to generate image");
