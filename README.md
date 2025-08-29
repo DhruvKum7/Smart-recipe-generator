@@ -15,7 +15,7 @@ A **MERN stack web application** powered by **Google Gemini API** that suggests 
 - Save and rate recipes with personalized suggestions  
 - Clean, mobile-responsive interface  
 - Loading & error states for smooth interaction  
-- Hosted on **[Netlify / Vercel / Heroku]**  
+- Hosted on **Render: https://smartrecipegenerator-1.onrender.com**  
 
 ---
 
