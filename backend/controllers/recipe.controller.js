@@ -1,5 +1,9 @@
 import Recipe from "../models/Recipe.model.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import User from "../models/User.model.js";
+import { GoogleGenAI, Modality } from "@google/genai";
+import * as fs from "node:fs";
+import { jsonrepair } from "jsonrepair";
 
 export const getAllRecipes = async (req, res) => {
   try {
@@ -75,9 +79,10 @@ export const createRecipe = async (req, res) => {
 
     let parsedRecipe;
     try {
-      parsedRecipe = JSON.parse(cleanText); // simple parsing, no fixing
+      const repaired = jsonrepair(cleanText); // 👈 fixes invalid JSON
+      parsedRecipe = JSON.parse(repaired);
     } catch (err) {
-      console.error("JSON Parse Error:", err.message);
+      console.error("JSON Repair failed:", err.message);
       return res
         .status(500)
         .json({ error: "AI response JSON invalid", raw: aiText });
@@ -208,10 +213,113 @@ export const deleteRecipe = async (req, res) => {
   }
 };
 
-export const saveRecipe = (req, res) => {
-  res.send(`Save recipe ID: ${req.params.id}`);
+export const saveRecipe = async (req, res) => {
+  try {
+    const recipeId = req.params.id;
+    const userId = req.user._id;
+
+    const recipe = await Recipe.findById(recipeId);
+    if (!recipe) return res.status(404).json({ error: "Recipe not found" });
+
+    const user = await User.findById(userId);
+    if (!user.savedRecipes) user.savedRecipes = [];
+
+    // Add recipe to user's savedRecipes
+    if (!user.savedRecipes.includes(recipeId)) {
+      user.savedRecipes.push(recipeId);
+      await user.save();
+    }
+
+    // Add user to recipe's savedBy
+    if (!recipe.savedBy.includes(userId)) {
+      recipe.savedBy.push(userId);
+      await recipe.save();
+    }
+
+    res.json({
+      message: "Recipe saved successfully",
+      savedRecipes: user.savedRecipes,
+    });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "Failed to save recipe", error: error.message });
+  }
 };
 
-export const rateRecipe = (req, res) => {
-  res.send(`Rate recipe ID: ${req.params.id}`);
+export const getSavedRecipes = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const savedRecipes = await Recipe.find({ savedBy: userId });
+
+    console.log(savedRecipes);
+    res.status(200).json({
+      message: "Here are your saved recipes",
+      recipes: savedRecipes,
+    });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "Failed to fetch saved recipes", error: error.message });
+  }
+};
+
+export const generateRecipeImage = async (req, res) => {
+  const apiKey = process.env.GOOGLE_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: "GOOGLE_API_KEY not found" });
+  }
+
+  try {
+    const { id } = req.params;
+
+    const recipe = await Recipe.findById(id);
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+
+    // Prompt for Gemini
+    const prompt = `Create a professional, restaurant-quality food photo of the dish: ${recipe.title}.
+    Style: realistic, appetizing, high resolution, well-lit.`;
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash-image-preview",
+    });
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+
+    let imageBase64 = null;
+    for (const candidate of response.candidates) {
+      for (const part of candidate.content.parts) {
+        if (part.inlineData) {
+          imageBase64 = part.inlineData.data;
+        }
+      }
+    }
+
+    if (!imageBase64) {
+      return res.status(500).json({ message: "No image returned by AI" });
+    }
+
+    // Save as data URI in DB (simple).
+    // Later you can upload to Cloudinary/S3 and just save the URL instead.
+    const base64Url = `data:image/png;base64,${imageBase64}`;
+    recipe.image = base64Url;
+    await recipe.save();
+
+    res.status(200).json({
+      message: "Image generated successfully",
+      recipe,
+    });
+  } catch (error) {
+    console.error("Error generating recipe image:", error);
+    res.status(500).json({
+      message: "Failed to generate recipe image",
+      error: error.message,
+    });
+  }
 };

@@ -6,7 +6,8 @@ import {
   updateRecipe,
   deleteRecipe,
   saveRecipe,
-  rateRecipe
+  getSavedRecipes,
+  generateRecipeImage,
 } from "../controllers/recipe.controller.js";
 import { protectRoute } from "../middlewares/auth.middleware.js";
 
@@ -14,6 +15,8 @@ const router = express.Router();
 
 // GET all recipes
 router.get("/", getAllRecipes);
+
+router.get("/recipe-saved", protectRoute, getSavedRecipes);
 
 // GET recipe by ID
 router.get("/:id", getRecipeById);
@@ -27,9 +30,9 @@ router.put("/:id", updateRecipe);
 router.delete("/:id", deleteRecipe);
 
 // POST save recipe (to favorites/user)
-router.post("/:id/save", saveRecipe);
+router.post("/:id/save", protectRoute, saveRecipe);
 
-// POST rate a recipe
-router.post("/:id/rate", rateRecipe);
+router.post("/:id/generate-image", generateRecipeImage);
+
 
 export default router;

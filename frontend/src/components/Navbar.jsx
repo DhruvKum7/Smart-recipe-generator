@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/auth";
-import { LogOut, UserPlus, LogIn, Home, Plus, Album } from "lucide-react";
+import { LogOut, UserPlus, LogIn, Home, Plus, Album, Save } from "lucide-react";
 import { logout } from "../api/auth";
 
 export default function Navbar() {
@@ -51,15 +51,23 @@ export default function Navbar() {
         ) : (
           <div className="flex items-center space-x-3 justify-evenly">
             <Link
+              to="/saved"
+              className="flex items-center space-x-1 px-4 py-2 rounded-lg bg-white text-orange-700 hover:bg-orange-100 hover:text-orange-900 transition-all duration-200 shadow-md"
+            >
+              <Save className="w-5 h-5" />
+              <span>Saved </span>
+            </Link>
+
+            <Link
               to="/"
-              className="flex items-center space-x-1 px-4 py-2 rounded-lg bg-white text-green-700 hover:bg-green-100 hover:text-purple-900 transition-all duration-200 shadow-md"
+              className="flex items-center space-x-1 px-4 py-2 rounded-lg bg-white text-green-700 hover:bg-green-100 hover:text-green-900 transition-all duration-200 shadow-md"
             >
               <Album className="w-5 h-5" />
               <span>ALL</span>
             </Link>
             <Link
               to="/create-recipe"
-              className="flex items-center space-x-1 px-4 py-2 rounded-lg bg-white text-yellow-700 hover:bg-yellow-100 hover:text-purple-900 transition-all duration-200 shadow-md"
+              className="flex items-center space-x-1 px-4 py-2 rounded-lg bg-white text-yellow-700 hover:bg-yellow-100 hover:text-yellow-900 transition-all duration-200 shadow-md"
             >
               <Plus className="w-5 h-5" />
               <span>Create</span>

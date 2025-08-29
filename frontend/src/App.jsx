@@ -10,6 +10,8 @@ import { fetchUser } from "./api/auth";
 import { useAuthStore } from "./store/auth";
 import CreateRecipe from "./pages/CreateRecipe";
 import Recipe from "./pages/Recipe";
+import SavedRecipe from "./pages/SavedRecipe";
+import Error from "./pages/Error";
 
 const App = () => {
   const setUser = useAuthStore((s) => s.setUser);
@@ -69,6 +71,20 @@ const App = () => {
               <Recipe />
             </ProtectedRoute>
           }
+        />
+
+        <Route
+          path="/saved"
+          element={
+            <ProtectedRoute>
+              <SavedRecipe />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="*"
+          element={<Error />}
         />
       </Routes>
     </BrowserRouter>

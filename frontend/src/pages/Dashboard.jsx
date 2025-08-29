@@ -14,29 +14,27 @@ export const Dashboard = () => {
   const [maxTime, setMaxTime] = useState("");
   const [dietaryFilter, setDietaryFilter] = useState("");
 
-
   const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     const getRecipes = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/api/recipe`);
+        const res = await axios.get(`${baseUrl}/api/recipe`, { withCredentials: true });
         setRecipes(res.data.recipes);
       } catch (err) {
         setError(err.message || "Failed to fetch recipes");
       }
     };
-
     getRecipes();
   }, [baseUrl]);
 
   if (!user) return <p>Loading...</p>;
 
-  // Extract unique tags from recipes
+  // Extract unique tags
   const allTags = ["All", ...new Set(recipes.map((r) => r.category))];
 
   // Filter recipes
-  const filteredRecipes = recipes.filter(recipe => {
+  const filteredRecipes = recipes.filter((recipe) => {
     const matchesSearch = recipe.title.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = selectedTag === "All" || recipe.category === selectedTag;
     const matchesDifficulty = !difficultyFilter || recipe.difficulty === difficultyFilter;
@@ -45,9 +43,8 @@ export const Dashboard = () => {
     return matchesSearch && matchesCategory && matchesDifficulty && matchesTime && matchesDietary;
   });
 
-
   return (
-    <div className="p-6 bg-teal-50">
+    <div className="p-6 bg-teal-50 min-h-screen">
       {error && <p className="text-red-500">{error}</p>}
 
       {/* Search Bar */}
@@ -68,12 +65,17 @@ export const Dashboard = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredRecipes.map((recipe) => (
-            <RecipeCard key={recipe._id} recipe={recipe} />
+            <RecipeCard
+              key={recipe._id}
+              recipe={recipe}
+              user={user}
+              onDelete={(id) => setRecipes(recipes.filter(r => r._id !== id))}
+            />
           ))}
         </div>
       )}
     </div>
   );
-}
+};
 
 export default Dashboard;

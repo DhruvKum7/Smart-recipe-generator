@@ -6,13 +6,13 @@ import {
   BookOpen,
   Star,
   List,
-  ChefHat,
   UtensilsCrossed,
   Utensils,
   AlertTriangle,
   Loader2,
   Edit3,
   Check,
+  ImagePlus,
 } from "lucide-react";
 
 const Recipe = () => {
@@ -22,6 +22,7 @@ const Recipe = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({});
+  const [imgLoading, setImgLoading] = useState(false);
   const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
@@ -84,6 +85,18 @@ const Recipe = () => {
 
   if (!recipe) return null;
 
+  const handleGenerateImage = async () => {
+    try {
+      setImgLoading(true);
+      const res = await axios.post(`${baseUrl}/api/recipe/${id}/generate-image`);
+      setRecipe(res.data.recipe); // update recipe with new image
+    } catch (err) {
+      setError(err.message || "Failed to generate image");
+    } finally {
+      setImgLoading(false);
+    }
+  };
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-4">
@@ -93,8 +106,8 @@ const Recipe = () => {
         <button
           onClick={() => setEditing((prev) => !prev)}
           className={`flex items-center gap-2 px-3 py-1 rounded shadow hover:brightness-90 ${editing
-              ? "bg-teal-500 text-white" 
-              : "bg-yellow-500 text-white" 
+            ? "bg-teal-500 text-white"
+            : "bg-yellow-500 text-white"
             }`}
         >
           {editing ? <Check size={16} /> : <Edit3 size={16} />}
@@ -172,7 +185,7 @@ const Recipe = () => {
             </div>
           )}
 
-          
+
           <div className="mb-8">
             <h2 className="text-2xl font-semibold flex items-center gap-2 mb-4">
               <List size={24} className="text-green-600" /> Ingredients
@@ -224,7 +237,15 @@ const Recipe = () => {
           )}
         </>
       )}
-    </div>
+      {/* <button
+        onClick={handleGenerateImage}
+        disabled={imgLoading}
+        className="mt-4 flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow transition disabled:opacity-60"
+      >
+        {imgLoading ? <Loader2 className="animate-spin w-5 h-5" /> : <ImagePlus className="w-5 h-5" />}
+        {imgLoading ? "Generating..." : "Generate Image"}
+      </button> */}
+    </div >
   );
 };
 

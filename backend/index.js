@@ -23,8 +23,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api/auth", authRoute);
-app.use("/api/recipe", recipeRoute);
-
+app.use("/api/recipe", recipeRoute);  
 
 // Start Server
 app.listen(PORT, () => {
