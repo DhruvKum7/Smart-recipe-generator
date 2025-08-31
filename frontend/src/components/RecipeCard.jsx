@@ -1,100 +1,227 @@
+// RecipeCard.jsx
+import React, { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Trash2, Heart } from "lucide-react";
 import axios from "axios";
-import { useState } from "react";
+import {
+  Heart,
+  Trash2,
+  Clock,
+  Utensils,
+  Star,
+  Images,
+} from "lucide-react";
 
-const RecipeCard = ({ recipe, onDelete, user }) => {
+export default function RecipeCard({ recipe = {}, onDelete, user }) {
   const navigate = useNavigate();
   const baseUrl = import.meta.env.VITE_BACKEND_URL;
-  const category = String(recipe.category || "").toLowerCase();
-  const isVeg = category.includes("veg");
-  const [success, setSuccess] = useState("");
-  const [saved, setSaved] = useState(recipe.userSaved || false);
-  const [loading, setLoading] = useState(false);
+
+  const {
+    _id,
+    title = "Untitled recipe",
+    image,
+    category,
+    difficulty,
+    cookingTime,
+    portionSize,
+    userSaved,
+    owner,
+  } = recipe;
+
+  const [saved, setSaved] = useState(!!userSaved);
+  const [busy, setBusy] = useState(false);
+  const [toast, setToast] = useState("");
+
+  const catStr = Array.isArray(category) ? category[0] : (category || "");
+  const isVeg = useMemo(
+      () => String(catStr).toLowerCase().includes("veg"),
+      [catStr]
+  );
+
+  const canDelete =
+      !!user &&
+      (!!owner &&
+          ((owner._id && owner._id === user._id) ||
+              (owner.email && owner.email === user.email)));
+
+  const showToast = (msg, ms = 2200) => {
+    setToast(msg);
+    window.clearTimeout((showToast._t || 0));
+    showToast._t = window.setTimeout(() => setToast(""), ms);
+  };
 
   const handleDelete = async (e) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!canDelete || busy) return;
+    if (!confirm("Delete this recipe permanently?")) return;
+
     try {
-      await axios.delete(`${baseUrl}/api/recipe/${recipe._id}`, { withCredentials: true });
-      setSuccess("Recipe deleted successfully");
-      if (onDelete) onDelete(recipe._id);
-      navigate("/");
+      setBusy(true);
+      await axios.delete(`${baseUrl}/api/recipe/${_id}`, {
+        withCredentials: true,
+      });
+      onDelete?.(_id);
+      showToast("Recipe deleted");
+      // Optional: navigate away if you're currently on the detail route
+      // navigate("/");
     } catch (err) {
-      setSuccess(err.response?.data?.message || "Failed to delete recipe");
-      setTimeout(() => setSuccess(""), 3000);
+      showToast(err?.response?.data?.message || "Failed to delete");
+    } finally {
+      setBusy(false);
     }
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (saved || loading) return;
-    setLoading(true);
+    if (busy || saved) return;
 
     try {
-      const response = await axios.post(
-        `${baseUrl}/api/recipe/${recipe._id}/save`,
-        {},
-        { withCredentials: true }
+      setBusy(true);
+      const { data } = await axios.post(
+          `${baseUrl}/api/recipe/${_id}/save`,
+          {},
+          { withCredentials: true }
       );
       setSaved(true);
-      alert(response.data.message || "Recipe saved!");
+      showToast(data?.message || "Saved to your recipes");
     } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || "Failed to save recipe");
+      showToast(err?.response?.data?.message || "Save failed");
     } finally {
-      setLoading(false);
+      setBusy(false);
     }
   };
 
   return (
-    <div className="relative group w-full max-w-sm rounded-3xl overflow-hidden shadow-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-      <Link to={`/recipe/${recipe._id}`} className="block relative">
-        <img
-          src={recipe.image}
-          alt={recipe.title}
-          className="w-full h-64 object-cover rounded-t-3xl"
+      <article
+          className="
+        group relative w-full overflow-hidden rounded-3xl
+        border border-black/5 bg-white/70 backdrop-blur-xl
+        shadow-[0_12px_36px_-14px_rgba(0,0,0,.25)]
+        transition hover:shadow-[0_20px_60px_-20px_rgba(0,0,0,.35)]
+      "
+          aria-label={title}
+      >
+        <Link to={`/recipe/${_id}`} className="block relative">
+          {/* Media */}
+          <div className="relative">
+            {image ? (
+                <img
+                    src={image}
+                    alt={title}
+                    loading="lazy"
+                    className="h-44 sm:h-52 w-full object-cover"
+                />
+            ) : (
+                <div className="grid h-44 sm:h-52 place-items-center bg-gradient-to-br from-amber-200 via-orange-200 to-rose-200">
+                  <Images className="w-8 h-8 text-amber-800/70" />
+                </div>
+            )}
+
+            {/* overlay */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+
+            {/* category + difficulty chips */}
+            <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+              {catStr && (
+                  <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium shadow
+                ${isVeg ? "bg-emerald-100 text-emerald-800" : "bg-orange-100 text-orange-800"}`}
+                  >
+                {catStr}
+              </span>
+              )}
+              {difficulty && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/85 px-2.5 py-1 text-xs font-medium text-gray-800 shadow">
+                <Star className="w-3.5 h-3.5 text-yellow-500" />
+                    {difficulty}
+              </span>
+              )}
+            </div>
+          </div>
+        </Link>
+
+        {/* Content */}
+        <div className="p-4 sm:p-5">
+          <h3 className="line-clamp-2 text-lg font-bold tracking-tight text-gray-900">
+            {title}
+          </h3>
+
+          {/* Meta */}
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-gray-600">
+            {typeof cookingTime === "number" && (
+                <span className="inline-flex items-center gap-1.5">
+              <Clock className="w-4 h-4" />
+                  {cookingTime} min
+            </span>
+            )}
+            {portionSize && (
+                <span className="inline-flex items-center gap-1.5">
+              <Utensils className="w-4 h-4" />
+                  {portionSize}
+            </span>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="mt-4 flex items-center justify-between">
+            <Link
+                to={`/recipe/${_id}`}
+                className="inline-flex items-center justify-center rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800 active:scale-[0.98]"
+            >
+              View details
+            </Link>
+
+            <div className="flex items-center gap-2">
+              <button
+                  onClick={handleSave}
+                  disabled={busy || saved}
+                  aria-pressed={saved}
+                  className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition
+                ${saved
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-blue-600 text-white hover:bg-blue-700"} disabled:opacity-60`}
+              >
+                <Heart
+                    className={`w-4 h-4 ${saved ? "text-emerald-600 fill-current" : "text-white"}`}
+                />
+                {saved ? "Saved" : busy ? "Saving..." : "Save"}
+              </button>
+
+              {canDelete && (
+                  <button
+                      onClick={handleDelete}
+                      disabled={busy}
+                      aria-label="Delete recipe"
+                      className="inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 p-2 text-red-700 hover:bg-red-100 disabled:opacity-60"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Hover glow */}
+        <div
+            className="pointer-events-none absolute inset-0 rounded-3xl opacity-0 transition group-hover:opacity-100"
+            style={{
+              background:
+                  "radial-gradient(600px circle at var(--mx, 0px) var(--my, 0px), rgba(251,191,36,.18), transparent 40%)",
+            }}
+            onMouseMove={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              e.currentTarget.style.setProperty("--mx", `${e.clientX - rect.left}px`);
+              e.currentTarget.style.setProperty("--my", `${e.clientY - rect.top}px`);
+            }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent rounded-t-3xl"></div>
-        <span
-          className={`absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold shadow-md ${
-            isVeg ? "bg-green-500 text-white" : "bg-orange-500 text-white"
-          }`}
-        >
-          {recipe.category}
-        </span>
-      </Link>
 
-      <div className="p-5 flex flex-col gap-3">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">{recipe.title}</h2>
-        <div className="flex justify-between items-center mt-2">
-          <button
-            onClick={handleSave}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition ${
-              saved ? "bg-green-500 hover:bg-green-600 text-white" : "bg-blue-500 hover:bg-blue-600 text-white"
-            }`}
-          >
-            <Heart size={16} className={saved ? "text-red-500" : "text-white"} />
-            {saved ? "Saved" : "Save"}
-          </button>
-
-          <button
-            onClick={handleDelete}
-            className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition"
-          >
-            <Trash2 size={16} />
-          </button>
-        </div>
-      </div>
-
-      {success && (
-        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-full shadow-md text-sm animate-fade-in">
-          {success}
-        </div>
-      )}
-    </div>
+        {/* Toast */}
+        {toast && (
+            <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/80 px-4 py-2 text-xs font-medium text-white shadow-lg">
+              {toast}
+            </div>
+        )}
+      </article>
   );
-};
-
-export default RecipeCard;
+}

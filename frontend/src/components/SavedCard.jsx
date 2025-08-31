@@ -1,34 +1,115 @@
-import React from "react";
+// SavedCard.jsx
+import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
+import { Images } from "lucide-react";
 
-const SavedCard = ({ recipe }) => {
-  const category = String(recipe.category || "").toLowerCase();
-  const isVeg = category.includes("veg");
+const SavedCard = ({ recipe = {} }) => {
+    const {
+        _id,
+        title = "Untitled recipe",
+        image,
+        category,
+        description = [],
+    } = recipe;
 
-  return (
-    <div className="relative w-full max-w-sm rounded-3xl overflow-hidden shadow-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-      <Link to={`/recipe/${recipe._id}`} className="block relative">
-        <img
-          src={recipe.image}
-          alt={recipe.title}
-          className="w-full h-64 object-cover rounded-t-3xl transition-transform duration-300 hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent rounded-t-3xl"></div>
-        <span
-          className={`absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold shadow-md ${
-            isVeg ? "bg-green-500 text-white" : "bg-orange-500 text-white"
-          }`}
+    const catStr = Array.isArray(category) ? category[0] : (category || "");
+    const isVeg = useMemo(
+        () => String(catStr).toLowerCase().includes("veg"),
+        [catStr]
+    );
+    const preview = Array.isArray(description) ? description[0] : description;
+
+    return (
+        <article
+            className="
+        group relative w-full overflow-hidden rounded-3xl
+        border border-black/5 bg-white/70 backdrop-blur-xl
+        shadow-[0_12px_36px_-14px_rgba(0,0,0,.25)]
+        transition hover:shadow-[0_20px_60px_-20px_rgba(0,0,0,.35)]
+        dark:bg-gray-900/70 dark:border-white/10
+      "
+            aria-label={title}
         >
-          {recipe.category}
-        </span>
-      </Link>
+            <Link to={`/recipe/${_id}`} className="block">
+                <div className="relative">
+                    {image ? (
+                        <img
+                            src={image}
+                            alt={title}
+                            loading="lazy"
+                            className="h-44 sm:h-52 w-full object-cover"
+                        />
+                    ) : (
+                        <div className="grid h-44 sm:h-52 place-items-center bg-gradient-to-br from-amber-200 via-orange-200 to-rose-200">
+                            <Images className="w-8 h-8 text-amber-900/70" />
+                        </div>
+                    )}
 
-      <div className="p-5">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">{recipe.title}</h2>
-        <p className="text-gray-600 dark:text-gray-300 mt-2">{recipe.description?.[0]}</p>
-      </div>
-    </div>
-  );
+                    {/* overlay */}
+                    <div className="pointer-events-none absolute inset-0 rounded-t-3xl bg-gradient-to-t from-black/60 via-black/25 to-transparent" />
+
+                    {/* category badge */}
+                    {catStr && (
+                        <span
+                            className={`absolute top-3 left-3 rounded-full px-2.5 py-1 text-xs font-medium shadow
+              ${isVeg ? "bg-emerald-100 text-emerald-800" : "bg-orange-100 text-orange-800"}`}
+                        >
+              {catStr}
+            </span>
+                    )}
+                </div>
+            </Link>
+
+            <div className="p-4 sm:p-5">
+                <h3 className="line-clamp-2 text-lg font-bold tracking-tight text-gray-900 dark:text-white">
+                    {title}
+                </h3>
+                {preview && (
+                    <p className="mt-2 line-clamp-2 text-sm text-gray-600 dark:text-gray-300">
+                        {preview}
+                    </p>
+                )}
+
+                {/* CTA */}
+                <div className="mt-4">
+                    <Link
+                        to={`/recipe/${_id}`}
+                        className="
+              inline-flex items-center justify-center rounded-xl
+              bg-gray-900 text-white px-4 py-2 text-sm font-medium
+              transition hover:bg-gray-800 active:scale-[0.98]
+              dark:bg-white dark:text-gray-900 dark:hover:bg-white/90
+            "
+                    >
+                        View recipe
+                    </Link>
+                </div>
+            </div>
+
+            {/* hover glow */}
+            <div
+                className="pointer-events-none absolute inset-0 rounded-3xl opacity-0 transition group-hover:opacity-100"
+                style={{
+                    background:
+                        "radial-gradient(600px circle at var(--mx, 0px) var(--my, 0px), rgba(251,191,36,.18), transparent 40%)",
+                }}
+                onMouseMove={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    e.currentTarget.style.setProperty("--mx", `${e.clientX - rect.left}px`);
+                    e.currentTarget.style.setProperty("--my", `${e.clientY - rect.top}px`);
+                }}
+            />
+
+            {/* reduce motion preference */}
+            <style>
+                {`
+          @media (prefers-reduced-motion: reduce) {
+            .transition { transition: none !important; }
+          }
+        `}
+            </style>
+        </article>
+    );
 };
 
 export default SavedCard;

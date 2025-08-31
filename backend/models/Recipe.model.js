@@ -34,7 +34,7 @@ const recipeSchema = new mongoose.Schema(
     image: {
       type: String,
       default:
-        "https://res.cloudinary.com/duxeqhtxe/image/upload/v1756270305/1cee65777195641ae9c270cd3970346b_ehwhce.jpg",
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0EbtAMkvjstpwiT8oSwwiPDJXVpC_KAaHdw&s",
     },
     ratings: [
       {
